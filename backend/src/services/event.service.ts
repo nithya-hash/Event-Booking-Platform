@@ -108,14 +108,13 @@ export async function deleteEvent(
   await prisma.event.delete({ where: { id } });
 }
 
-// 🔹 Helper: calculate available seats (FIXED ✅)
+// 🔹 Helper: calculate available seats ✅ FIXED
 function withAvailability(event: any) {
   const booked = event.bookings.reduce(
     (sum: number, b: { seatsBooked: number }) => sum + b.seatsBooked,
     0
   );
 
-  // ✅ Properly remove bookings WITHOUT unused variable
   const rest = { ...event };
   delete rest.bookings;
 
