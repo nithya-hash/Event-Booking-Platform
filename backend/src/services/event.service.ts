@@ -125,10 +125,14 @@ function withAvailability(event: EventWithBookings) {
     0
   );
 
-  const { bookings, ...rest } = event;
+  // remove bookings safely
+  const rest = { ...event };
+  delete rest.bookings;
 
   return {
     ...rest,
     availableSeats: event.capacity - booked,
   };
+
+
 }
