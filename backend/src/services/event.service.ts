@@ -5,6 +5,16 @@ import {
   ListEventsQuery,
   UpdateEventInput,
 } from "../utils/validation/event.schema";
+import { Prisma } from "@prisma/client";
+
+// 🔹 Type for event with bookings
+type EventWithBookings = Prisma.EventGetPayload<{
+  include: {
+    bookings: {
+      select: { seatsBooked: true };
+    };
+  };
+}>;
 
 // 🔹 Get all events
 export async function listEvents(query: ListEventsQuery) {
@@ -109,14 +119,13 @@ export async function deleteEvent(
 }
 
 // 🔹 Helper: calculate available seats ✅ FIXED
-function withAvailability(event: any) {
+function withAvailability(event: EventWithBookings) {
   const booked = event.bookings.reduce(
-    (sum: number, b: { seatsBooked: number }) => sum + b.seatsBooked,
+    (sum, b) => sum + b.seatsBooked,
     0
   );
 
-  const rest = { ...event };
-  delete rest.bookings;
+  const { bookings, ...rest } = event;
 
   return {
     ...rest,
