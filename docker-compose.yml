@@ -1,10 +1,6 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16-alpine
-    container_name: capstone_db
-    restart: always
     environment:
       POSTGRES_USER: capstone
       POSTGRES_PASSWORD: capstone
@@ -20,38 +16,38 @@ services:
       retries: 10
 
   backend:
-    container_name: capstone_backend
     build:
       context: ./backend
-    restart: always
     env_file:
       - ./backend/.env
     environment:
+      # Overrides the .env value: inside Docker's network, Postgres is
+      # reachable at hostname "db" (the service name), not "localhost".
       DATABASE_URL: postgresql://capstone:capstone@db:5432/capstone_db
-      DOCKER: "true"
+      # Force production mode regardless of what NODE_ENV is set to in
+      # .env - otherwise the logger tries to load pino-pretty, which is
+      # a devDependency deliberately excluded from the production image.
+      NODE_ENV: production
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "4000:4000"
-
-    # ✅ Production run (FIXED)
-    command: sh -c "npx prisma migrate deploy && node dist/server.js"
-
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
       interval: 10s
       timeout: 3s
       retries: 5
-      start_period: 15s
+      start_period: 10s
 
   frontend:
-    container_name: capstone_frontend
     build:
       context: ./frontend
       args:
+        # Browser JS runs on the host machine, not inside Docker's
+        # network, so it must reach the backend via localhost:4000
+        # (the port mapped above), not the "backend" service hostname.
         VITE_API_URL: http://localhost:4000/api/v1
-    restart: always
     depends_on:
       backend:
         condition: service_healthy

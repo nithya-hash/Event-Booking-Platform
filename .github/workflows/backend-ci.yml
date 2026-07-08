@@ -41,7 +41,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
@@ -56,3 +56,9 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+  # Deployment is handled by Render, which is connected directly to this
+  # GitHub repo and rebuilds/redeploys automatically from backend/Dockerfile
+  # on every push to main that passes the test job above. No Docker Hub
+  # push or deploy-hook secrets needed - Render does its own git-triggered
+  # build. See README for the Render setup steps.
