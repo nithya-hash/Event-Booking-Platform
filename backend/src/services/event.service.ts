@@ -119,20 +119,12 @@ export async function deleteEvent(
 }
 
 // 🔹 Helper: calculate available seats ✅ FIXED
+// 🔹 Helper: calculate available seats
 function withAvailability(event: EventWithBookings) {
-  const booked = event.bookings.reduce(
-    (sum, b) => sum + b.seatsBooked,
-    0
-  );
-
-  // remove bookings safely
-  const rest = { ...event };
-  delete rest.bookings;
-
+  const booked = event.bookings.reduce((sum, b) => sum + b.seatsBooked, 0);
+  const { bookings: _bookings, ...rest } = event;
   return {
     ...rest,
     availableSeats: event.capacity - booked,
   };
-
-
 }
